@@ -9,9 +9,11 @@
 askable(blood_sugar).
 askable(resting_bp).
 askable(max_exer_difficulty).
-if knowledge(blood_sugar, high) and knowledge(resting_bp, high) then knowledge(heart_risk, true).
+askable(cp_only_exercise).
+askable(cholesterol_level).
 
-%is_true(knowledge(heart_risk, true)
+if knowledge(blood_sugar, high) and knowledge(resting_bp, high) then knowledge(heart_risk, true).
+if knowledge(cp_only_exercise, no) and knowledge(max_exer_difficulty, easy) then knowledge(heart_risk, true).
 
 start:-
     write('Welcome to the Heart Disease Analysis expert system!'),nl,
@@ -98,22 +100,22 @@ is_true(knowledge(Attr1, Val1)):-
     explore(knowledge(Attr1, Val1)).
 
 explore(knowledge(Attr1, Val1)):- 
-    write("Evaluating "), write(Attr1), write(" in regular exploration"),nl,
+    %write("Evaluating "), write(Attr1), write(" in regular exploration"),nl,
     knowledge(Attr1, Val1), !.
 
 explore(knowledge(Attr1, Val1)):- 
-    write("Evaluating "), write(Attr1), write(" in askable exploration"),nl,
+    %write("Evaluating "), write(Attr1), write(" in askable exploration"),nl,
     askable(Attr1), 
     \+ knowledge(Attr1, _),
     \+ already_asked(Attr1),
     get_multianswer_options(Attr1, Options),
     ask_user(Attr1, Val, Options),
-    Val == Val1.
+    Val == Val1. % Make sure the user answer is what we are exploring
 
 
 explore(knowledge(Attr1, Val1) and knowledge(Attr2, Val2)):-
     %s!, % DO WE REALLY NEED THIS?? % If we match with an `and` clause, no need to check other types of clauses
-    write("Evaluating "), write(Attr1), write(" in AND exploration"),nl,
+    %write("Evaluating "), write(Attr1), write(" in AND exploration"),nl,
     explore(knowledge(Attr1, Val1)),
     explore(knowledge(Attr2, Val2)),!.
 
@@ -130,25 +132,3 @@ explore(P):-
     if Cond then P,
     explore(Cond).
 
-/*
-is_true(P1 and P2):-
-    !, % If we match with an `and` clause, no need to check other types of clauses
-    is_true(P1),
-    is_true(P2).
-
-is_true(P1 or P2):-
-    (
-        is_true(P1)
-        ;
-        is_true(P2)
-    ), !.    
-
-is_true(P):- 
-    P, !.    
-
-is_true(P):-
-    if Cond then P,
-    is_true(Cond).
-
-is_true(P)    
-*/
