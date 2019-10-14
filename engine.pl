@@ -6,14 +6,15 @@
 :- dynamic(already_asked/1).
 :- dynamic(knowledge/2).
 
+:- ensure_loaded(rules).
+
 askable(blood_sugar).
 askable(resting_bp).
 askable(max_exer_difficulty).
 askable(cp_only_exercise).
 askable(cholesterol_level).
+askable(gender).    
 
-if knowledge(blood_sugar, high) and knowledge(resting_bp, high) then knowledge(heart_risk, true).
-if knowledge(cp_only_exercise, no) and knowledge(max_exer_difficulty, easy) then knowledge(heart_risk, true).
 
 start:-
     write('Welcome to the Heart Disease Analysis expert system!'),nl,
@@ -41,17 +42,20 @@ do(quit).
 do(Unknown):-
     write("Received an illegal operation `"), write(Unknown), write("`, please try again (type `help` for the manual)"),nl.
 
+safe_clear_all:-
+    retractall(knowledge(_, _)),
+    retractall(already_asked(_)),
+    !.
+
+safe_clear_all:- !.    
 
 check_heart_risk:-
+    safe_clear_all,
     is_true(knowledge(heart_risk, true)),!,
     write('The patient is in heart risk.'),nl.
 
 check_heart_risk:-
     write('NO HEART RISK!'),nl.
-
-% What is the maximum difficulty on the ECG treadmil test?  (easy/medium/hard)
-max_exer_difficulty(X):-
-    ask_user(max_exer_difficulty, X, [easy, medium, hard]).
 
 human_readable_question(cp_only_exercise):-
     write('Is there chest pain only during exercise? (yes/no) : '), nl, !.
@@ -66,7 +70,10 @@ human_readable_question(blood_sugar):-
     write('What is the patients blood sugar level?  (low/high) '), nl, !. 
 
 human_readable_question(resting_bp):-
-    write('What is the patients resting blood pressure?  (low/normal/high) '), nl, !.   
+    write('What is the patients resting blood pressure?  (low/normal/high) '), nl, !. 
+
+human_readable_question(gender):-
+    write('What is the patients gender? (male/female) '), nl, !.       
 
 get_multianswer_options(cp_only_exercise, [yes, no]).
 
@@ -77,6 +84,8 @@ get_multianswer_options(cholesterol_level, [low, normal, high]).
 get_multianswer_options(blood_sugar, [low, high]).
 
 get_multianswer_options(resting_bp, [low, normal, high]).
+
+get_multianswer_options(gender, [male, female]).
 
 ask_user(Attr, Val, Options):-
     human_readable_question(Attr),
@@ -112,21 +121,17 @@ explore(knowledge(Attr1, Val1)):-
     ask_user(Attr1, Val, Options),
     Val == Val1. % Make sure the user answer is what we are exploring
 
+explore(P1 and P2):-
+    % write("Evaluating "), write(Attr1), write(" in AND exploration"),nl,
+    explore(P1),
+    explore(P2),!.
 
-explore(knowledge(Attr1, Val1) and knowledge(Attr2, Val2)):-
-    %s!, % DO WE REALLY NEED THIS?? % If we match with an `and` clause, no need to check other types of clauses
-    %write("Evaluating "), write(Attr1), write(" in AND exploration"),nl,
-    explore(knowledge(Attr1, Val1)),
-    explore(knowledge(Attr2, Val2)),!.
-
-explore(knowledge(Attr1, Val1) or knowledge(Attr2, Val2)):-
+explore(P1 or P2):-
     (
-        explore(knowledge(Attr1, Val1))
+        explore(P1)
         ;
-        explore(knowledge(Attr2, Val2))
+        explore(P2)
     ), !.    
-
-
 
 explore(P):-
     if Cond then P,
