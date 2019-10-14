@@ -5,7 +5,7 @@ del(X, [X | Rest], Rest):- !.
 del(X, [Y | Rest0], [Y | Rest]):-
     del(X, Rest0, Rest).
 
-attribute(age_category, [child, young_adult, middle_age, adult, senior]).
+%attribute(age_category, [child, young_adult, middle_age, adult, senior]).
 attribute(gender, [male, female]).
 attribute(resting_bp, [low, normal, high]).
 attribute(cholesterol_level, [low, normal, high]).
@@ -17,8 +17,7 @@ attribute(max_exer_difficulty, [easy, medium, hard]).
 induce_tree(Tree):-
     findall(example(Class, Obj), example(Class, Obj), Examples),
     findall(Att, attribute(Att, _), Attributes),
-    induce_tree(Attributes, Examples, Tree),!,
-    write(Tree).
+    induce_tree(Attributes, Examples, Tree),!.
 
 induce_tree(_, [], null):- !. % No examples to learn from
 induce_tree([], _, null):- !. % No attributes left
@@ -189,9 +188,9 @@ choose_attribute(Atts, Examples, BestAtt):-
         (
             member(Att, Atts), get_gini_impurity_for_feature(Examples, Att, Impurity)
         ),
-        [MinImpurity/BestAtt | _]
-    ),
-    write("MinImpurity/BestAtt = "), write(MinImpurity),write('/'),write(BestAtt), nl.
+        [_/BestAtt | _]
+    ).
+    %write("MinImpurity/BestAtt = "), write(MinImpurity),write('/'),write(BestAtt), nl.
 
 
 % Testing
