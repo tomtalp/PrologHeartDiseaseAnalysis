@@ -1,11 +1,15 @@
 :- ensure_loaded(training_data).
 
-
+/*
+    Delete an element from the list
+*/
 del(X, [X | Rest], Rest):- !.
 del(X, [Y | Rest0], [Y | Rest]):-
     del(X, Rest0, Rest).
 
-%attribute(age_category, [child, young_adult, middle_age, adult, senior]).
+/*
+    Attributes in our training data
+*/
 attribute(gender, [male, female]).
 attribute(resting_bp, [low, normal, high]).
 attribute(cholesterol_level, [low, normal, high]).
@@ -13,70 +17,84 @@ attribute(blood_sugar, [low, high]).
 attribute(cp_only_exercise, [yes, no]).
 attribute(max_exer_difficulty, [easy, medium, hard]).
 
+/*
+    build_decision_tree(Tree)
 
-induce_tree(Tree):-
+    Build the decision tree - load all the examples, and look for the best splits in every branch.    
+*/
+build_decision_tree(Tree):-
     findall(example(Class, Obj), example(Class, Obj), Examples),
     findall(Att, attribute(Att, _), Attributes),
-    induce_tree(Attributes, Examples, Tree),!.
+    build_decision_tree(Attributes, Examples, Tree),!.
 
-induce_tree(_, [], null):- !. % No examples to learn from
-induce_tree([], _, null):- !. % No attributes left
+/* No examples to learn from */
+build_decision_tree(_, [], null):- !.
 
-induce_tree(_, [example(Class, _) | Examples], leaf(Class)):- % Only one class in our dataset
-    %write("Only 1 class!"),nl,
+/* No attributes left */
+build_decision_tree([], _, null):- !.
+
+/* Only one class in our dataset */
+build_decision_tree(_, [example(Class, _) | Examples], leaf(Class)):- 
     \+ (
         member(example(Class2, _), Examples),
         Class2 \== Class
     ), !.
 
-induce_tree(Attributes, Examples, tree(Attribute, SubTrees)):-
+/*
+    Building the tree, an actual step - Select the best attribute for a split (via the Gini impurity metric)
+    and recursively build the rest of the tree from the remaining attributes
+*/
+build_decision_tree(Attributes, Examples, tree(Attribute, SubTrees)):-
     choose_attribute(Attributes, Examples, Attribute), % Select the best attribute
-    %write("Selected attribute for split = "), write(Attribute), nl,
     del(Attribute, Attributes, RemainingAttributes),
     attribute(Attribute, Values), % Get the possible values of the selected attribute
-    induce_trees(Attribute, Values, RemainingAttributes, Examples, SubTrees).
-    %write("Finished first iteration"),nl
-    %write(RemainingAttributes),nl,
-    %write(Examples).
-
-%induce_trees(Att, Vals, RestAtts, Examples, SubTrees)
-
-induce_trees(_, [], _, _, []).
+    build_decision_trees(Attribute, Values, RemainingAttributes, Examples, SubTrees).
 
 
-induce_trees(Att, [Val1 | Vals], RestAtts, Examples, [Val1 : Tree1 | Trees]):-
-    %write("Inside induce_trees! Val1 = "), write(Val1), write(" remaining vals = "), write(Vals), write(" RestAtts = "), write(RestAtts), nl,
+/*
+    build_decision_trees(Attribute, AttrValues, RemainingAttributes, Examples, SubTrees)
+    An extension to the regular tree building operation - take the selected attribute for the
+    split, take all different attribute values from the training set, and split into sub-trees
+*/
+build_decision_trees(_, [], _, _, []).
+
+build_decision_trees(Att, [Val1 | Vals], RestAtts, Examples, [Val1 : Tree1 | Trees]):-
     get_subset_by_feature_query(Att = Val1, Examples, ExampleSubset),
-    %write(" RestAtts = "), write(RestAtts), write(" ExampleSubset = "), write(ExampleSubset), write("Tree1 = "), write(Tree1), nl,
-    induce_tree(RestAtts, ExampleSubset, Tree1),
-    %write("Tree1 = "), write(Tree1), nl,
-    %write("After call to `induce_tree` which apparently doesn't work"),nl,
-    induce_trees(Att, Vals, RestAtts, Examples, Trees).
+    build_decision_tree(RestAtts, ExampleSubset, Tree1),
+    build_decision_trees(Att, Vals, RestAtts, Examples, Trees).
 
-satisfy(Object, Conj):-
+/*
+    check_clause(AttributeValues, SearchClauses)
+
+    Verify that the attribute values list contains the search clause, and nothing that contradicts it
+*/
+check_clause(AttributeValues, SearchClauses):-
     \+ (
-        member(Att = Val, Conj),
-        member(Att = ValX, Object),
+        member(Att = Val, SearchClauses),
+        member(Att = ValX, AttributeValues),
         ValX \== Val
     ).
 
+/*
+    get_subset_by_feature_query(Feature = Value, Examples, ExampleSubset)
+
+    Get all the training examples that match a given search clause (Feature = Value)
+*/
 get_subset_by_feature_query(Feature = Value, Examples, ExampleSubset):-
     findall(
         example(Class, Obj), 
         (
             member(example(Class, Obj), Examples),
-            satisfy(Obj, [Feature = Value])
+            check_clause(Obj, [Feature = Value])
         ),
         ExampleSubset
     ).        
 
 
-% impurity1(Examples, Attribute, Impurity):-
-
 /*
     get_squared_sum_of_freqs(FrequenciesList, FrequenciesSum, SquaredSum)
 
-    Receive a list representing frequencies, the some of all frequencies, and return
+    Receive a list representing frequencies, the sum of all frequencies, and return
     the squared sum of the probabilities. This will be subtracted from 1 to calc the Gini impurity metric
     Sum equation = (Freq_0 / FrequenciesSum)^2 + (Freq_1 / FrequenciesSum)^2 + ... + (Freq_n / FrequenciesSum)^2
 
@@ -85,6 +103,7 @@ get_subset_by_feature_query(Feature = Value, Examples, ExampleSubset):-
         FrequenciesSum = 7,
         SquaredSum ---> (3/7)**2 + (2/7)**2 + (2/7)**2 ---> 0.3469
 */
+
 get_squared_sum_of_freqs([], _, 0).
 get_squared_sum_of_freqs([_/Freq | T], FrequenciesSum, Sum):-
     N is (Freq / FrequenciesSum) ** 2,
@@ -181,7 +200,13 @@ count_freqs([example(Class, _) | T], Res):-
     count_freqs(T, Res).
 
 
+/*
+    choose_attribute(Atts, Examples, BestAtt)
 
+    Select an attribute from the attributes, that has the minimum Impurity metric.
+    `setof` will sort the results for us, so that the head of the list will contain the attribute with the
+    lost Gini impurity metric
+*/
 choose_attribute(Atts, Examples, BestAtt):-
     setof(
         Impurity/Att,
@@ -190,10 +215,3 @@ choose_attribute(Atts, Examples, BestAtt):-
         ),
         [_/BestAtt | _]
     ).
-    %write("MinImpurity/BestAtt = "), write(MinImpurity),write('/'),write(BestAtt), nl.
-
-
-% Testing
-%findall(example(Class, Obj), example(Class, Obj), Examples),
-%findall(Att, attribute(Att, _), Attributes),
-%get_subset_by_feature_query(size = small, Examples, R).
