@@ -1,3 +1,12 @@
+/************************************************************************************
+*
+* decision_tree.pl 
+* Build a decision tree from training data.
+* This is a pretty simple implementation - no pruning, no boosting, just simple
+* feature selection (purely based on the feature with the lowest Gini value).
+*
+************************************************************************************/
+
 :- ensure_loaded(training_data).
 
 /*

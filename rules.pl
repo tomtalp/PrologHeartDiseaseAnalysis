@@ -1,15 +1,18 @@
-/******************************************************/
-/* FAKE RULE FOR TESTING */
-/******************************************************/
-/*
-if 
-    knowledge(cp_only_exercise, yes) 
-    and knowledge(cholesterol_level, low)
-then 
-    knowledge(heart_risk, true).
-*/
-/******************************************************/
-/******************************************************/
+/************************************************************************************
+*
+* rules.pl 
+* Prolog Heart Disease Analyzer - OpenU final Prolog project. 
+* Tom Talpir, 2019
+*
+* This file contains the iagnosis rules specification - rules that
+* specify what values are required to be diagnosed as having heart risk.
+*
+* These rules were built via the decision tree, that was based on
+* the UCI training data.
+*
+************************************************************************************/
+
+
 if 
     knowledge(cp_only_exercise, yes) 
     and knowledge(max_exer_difficulty, easy) 

@@ -1,12 +1,15 @@
-:- op(800, fx, if).
-:- op(700, xfx, then).
-:- op(300, xfy, or).
-:- op(200, xfy, and).
-:- op(800, xfx, <=).
+/************************************************************************************
+*
+* engine.pl 
+* Prolog Heart Disease Analyzer - OpenU final Prolog project. 
+* Tom Talpir, 2019
+*
+* The inference engine - finds the rules that match the user answers, to make
+* a diagnosis.
+*
+************************************************************************************/
 
-:- dynamic(already_asked/1).
-:- dynamic(knowledge/2).
-
+:- ensure_loaded(utils).
 :- ensure_loaded(rules).
 
 askable(blood_sugar).
@@ -14,55 +17,36 @@ askable(resting_bp).
 askable(max_exer_difficulty).
 askable(cp_only_exercise).
 askable(cholesterol_level).
-askable(gender).    
-
-conc([],Ys,Ys).
-conc([X|Xs],Ys,[X|Zs]):-conc(Xs,Ys,Zs).
-
-start:-
-    write('Welcome to the Heart Disease Analysis expert system!'),nl,
-    write("Please type your action -"),nl,
-    tab(4), write('diagnose (to perform a diagnosis)'),nl,
-    tab(4), write('help (to receive help about the program)'),nl,
-    tab(4), write('quit (to exit)'),nl,
-    repeat,
-    write('>>> '),
-    read(Action),
-
-    % Change this part - 
-    do(Action),
-    Action == quit.
-
-do(diagnose):-
-    !, write('Performing diagnose!'),nl, 
-    check_heart_risk.    
-
-do(help):-
-    !, write("Here's some info about our system - blablabla") ,nl.    
-
-do(quit).
-
-do(Unknown):-
-    write("Received an illegal operation `"), write(Unknown), write("`, please try again (type `help` for the manual)"),nl.
-
-safe_clear_all:-
-    retractall(knowledge(_, _)),
-    retractall(already_asked(_)),
-    !.
-
-safe_clear_all:- !.    
+askable(gender).      
 
 check_heart_risk:-
-    safe_clear_all,
-    is_true(knowledge(heart_risk, HasRisk), Proof),!,
-    write("Proof = "),nl,write(Proof),nl,
-    print_diagnosis(HasRisk).
+    is_true(knowledge(heart_risk, HasRisk), Proof),
+    nl,
+    print_diagnosis(HasRisk),
+    nl,
+    print_diagnosis_proof(Proof),
+    nl, nl.
 
 print_diagnosis(true):-
-    !, write("The patient is in heart risk!"),nl.
+    !, write("## The patient is in heart risk! ##"),nl.
 
 print_diagnosis(false):-
-    !, write("The patient doesn't have a heart risk!"),nl.    
+    !, write("## The patient doesn't have a heart risk! ##"), nl.    
+
+print_diagnosis_proof(knowledge(heart_risk, Diagnosis) <= Proof):-
+    !,
+    write("How was the diagnosis that `heart risk = "), write(Diagnosis), write("` reached? "),
+    nl,
+    print_diagnosis_proof(Proof).
+
+print_diagnosis_proof(Proof1 and Proof2):-
+    !, 
+    print_diagnosis_proof(Proof1),
+    print_diagnosis_proof(Proof2).
+
+print_diagnosis_proof(Attr:Val):-
+    !, 
+    tab(4), human_readable_question(Attr), tab(8), write(Val), nl.    
 
 
 human_readable_question(cp_only_exercise):-
@@ -100,13 +84,6 @@ ask_user(Attr, Val, Options, Proof, Trace):-
     read(UserAnswer),
     process_answer(UserAnswer, Attr, Val, Options, Proof, Trace).
 
-/**** WHY - putting on hold for now
-process_answer(why, Attr, Val, Options, Proof, Trace):-
-    !,
-    display_rule_chain(Trace, 0),nl,
-    %write('THIS IS THE WHY EXPLANATION!'),nl,
-    ask_user(Attr, Val, Options, Proof, Trace).
-*/
 %process_answer(UserAnswer, Attr, Val, Options, Attr:Val <= was_told, _):-
 process_answer(UserAnswer, Attr, Val, Options, Proof, _):-
     validate_answer(UserAnswer, Attr, Options),!,
@@ -157,13 +134,3 @@ explore(P1 or P2, Proof, Trace):-
 explore(P, P <= CondProof, Trace):-
     if Cond then P,
     explore(Cond, CondProof, [if Cond then P | Trace]).
-
-/**** WHY - putting on hold for now
-
-display_rule_chain([], _).
-display_rule_chain([if C then P | Rules], Indent):-
-    nl, tab(Indent), write("To explore whether "), write(P), write(' using rule '),
-    nl, tab(Indent), write(if C then P),
-    NextIndent is Indent + 2,
-    display_rule_chain(Rules, NextIndent).
-*/    
