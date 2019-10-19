@@ -185,7 +185,41 @@ if
     and knowledge(resting_bp, high)
     and (knowledge(cholesterol_level, normal) or knowledge(cholesterol_level, high))
 then 
-    knowledge(heart_risk, true).                                        
+    knowledge(heart_risk, true).
+
+if 
+    knowledge(cp_only_exercise, no) 
+    and knowledge(max_exer_difficulty, medium) 
+    and knowledge(gender, female)
+    and knowledge(resting_bp, low)
+then 
+    knowledge(heart_risk, false).
+
+if 
+    knowledge(cp_only_exercise, no) 
+    and knowledge(max_exer_difficulty, medium) 
+    and knowledge(gender, female)
+    and knowledge(resting_bp, high)
+then 
+    knowledge(heart_risk, true).  
+
+if 
+    knowledge(cp_only_exercise, no) 
+    and knowledge(max_exer_difficulty, medium) 
+    and knowledge(gender, female)
+    and knowledge(resting_bp, normal)
+    and knowledge(blood_sugar, low)
+then 
+    knowledge(heart_risk, false).   
+
+if 
+    knowledge(cp_only_exercise, no) 
+    and knowledge(max_exer_difficulty, medium) 
+    and knowledge(gender, female)
+    and knowledge(resting_bp, normal)
+    and knowledge(blood_sugar, high)
+then 
+    knowledge(heart_risk, true).                                                      
 
 if 
     knowledge(cp_only_exercise, no) 
