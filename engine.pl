@@ -93,13 +93,13 @@ process_answer(UserAnswer, Attr, Val, Options, Proof, _):-
     asserta(knowledge(Attr, Val)). % Save the value
 
 % Received a valid answer
-validate_answer(UserAnswer, Attr, Options):-
+validate_answer(UserAnswer, _, Options):-
     member(UserAnswer, Options), !.    
 
 % Invalid answer, trying again
 validate_answer(UserAnswer, Attr, Options):-
     write(UserAnswer), write(" is an invalid answer. Please try again."),nl,
-    ask_user(Attr, Val, Options, Proof, _).
+    ask_user(Attr, _, Options, _, _).
 
 is_true(knowledge(Attr1, Val1), Proof):-
     explore(knowledge(Attr1, Val1), Proof, []).

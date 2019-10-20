@@ -125,7 +125,7 @@ get_squared_sum_of_freqs([_/Freq | T], FrequenciesSum, Sum):-
     Calculate the Gini impurity value for a given feature split.
     We take all the training data with FeatureName = FeatureValue, calculate the frequencies
     of each class, then subtract the squared sum of the class probabilities from 1. 
-    A more in depth explanation can be found in the project docs, page <TODO>
+    A more in depth explanation can be found in the project docs, under the "Decision Tree" explanation
 
     e.g. - 
         Examples = [example(ClassA, _), example(ClassA, _), example(ClassB, _), ......],
@@ -167,7 +167,7 @@ get_gini_impurity_for_feature(TrainingSet, FeatureName, FeatureGiniImpurity):-
     Perform a sum of the Gini impurity values, for every possible value in our feature-value list.
     We go over all the values for the given feature, extract the training dataset with that value and
     calculate the Gini impurity for that single value. Then we perform a weighted sum for all impurities.
-    Further explanation in the project document, page <TODO>
+    Further explanation in the project document, under the "Decision Tree" explanation
 */
 get_gini_impurities(_, _, _, [], 0):- !.
 
