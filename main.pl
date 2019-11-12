@@ -17,6 +17,9 @@
 :- ensure_loaded(engine).
 :- ensure_loaded(utils).
 
+/*
+    Start the analysis process
+*/
 start:-
     write('########################################################'),nl,
     write('# Welcome to the Heart Disease Analysis expert system! #'),nl,
@@ -30,6 +33,10 @@ start:-
     execute_action(Action),
     Action == quit.
 
+/*
+    execute_action(Action)
+    Receive an action from the user input and act accordingly
+*/
 execute_action(diagnose):-
     !, 
     write('### Starting a diagnosis'),

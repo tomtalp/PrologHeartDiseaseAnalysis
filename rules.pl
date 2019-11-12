@@ -4,7 +4,7 @@
 * Prolog Heart Disease Analyzer - OpenU final Prolog project. 
 * Tom Talpir, 2019
 *
-* This file contains the iagnosis rules specification - rules that
+* This file contains the diagnosis rules specification - rules that
 * specify what values are required to be diagnosed as having heart risk.
 *
 * These rules were built via the decision tree, that was based on
